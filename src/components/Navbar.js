@@ -1,13 +1,33 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, {useState} from "react";
+import { NavLink } from "react-router-dom";
 
 function Navbar() {
+
+    const [hoveredLink, setHoveredLink] = useState("");
+
+    const handleMouseEnter = (link) => {setHoveredLink(link);
+        
+    };
+
+    const handleMouseLeave = (link) => {setHoveredLink(null);
+
+    };
+
     return (
         <nav style={styles.navbar}>
             <h2>Cricket Match Tracker</h2>
             <div>
-                <Link to="/" style={styles.link}>Home</Link>
-                <Link to="/create-tournament" style={styles.link}>Create Tournament</Link>
+                <NavLink to="/" style={{...styles.link, ...(hoveredLink==="/"? styles.linkHover: {})
+            }} activeStyle={styles.active}
+            onMouseEnter={() => handleMouseEnter("/")}
+            onMouseLeave={handleMouseLeave}> Home</NavLink>
+                <NavLink to="/tournaments" style={{...styles.link, ...(hoveredLink==="/tournaments"? styles.linkHover: {})
+            }} activeStyle={styles.active}
+            onMouseEnter={() => handleMouseEnter("/tournaments")}
+            onMouseLeave={handleMouseLeave}> Tournaments </NavLink>
+                <NavLink to="/create-tournament" style={{...styles.link, ...(hoveredLink ==="/create-tournament"? styles.linkHover:{})}} activeStyle={styles.active}
+                onMouseEnter={() => handleMouseEnter("/create-tournament")}
+                onMouseLeave={handleMouseLeave}>Create Tournament</NavLink>
             </div>
         </nav>
     );
@@ -22,10 +42,18 @@ const styles = {
         color: "white"
     },
     link: {
+        flexGrow: 1,
         color: "white",
         textDecoration: "none",
         marginLeft: "15px",
         fontSize: "18px"
+    },
+    linkHover: {
+        color: "lightblue" // Change color on hover
+    },
+    active: {
+        fontWeight: "bold",
+        textDecoration: "underline"
     }
 };
 

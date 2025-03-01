@@ -16,7 +16,6 @@ function CreateTournament() {
 
         console.log("Tournament Created:", { tournamentName, startDate });
 
-        // Redirect to home after creation
         navigate("/");
     };
 

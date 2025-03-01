@@ -1,40 +1,25 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 function TournamentDetails() {
     const { id } = useParams();
-
-    const tournament = {
-        id: id,
-        name: "Champions League",
-        startDate: "2024-06-15",
-        teams: ["Team A", "Team B", "Team C", "Team D"],
-        matches: [
-            { matchId: 1, team1: "Team A", team2: "Team B", date: "2024-06-20" },
-            { matchId: 2, team1: "Team C", team2: "Team D", date: "2024-06-22" }
-        ]
-    };
+    const navigate = useNavigate();
 
     return (
         <div style={styles.container}>
-            <h1>{tournament.name}</h1>
-            <p><strong>Start Date:</strong> {tournament.startDate}</p>
+            <h1>Tournament {id} Details</h1>
 
-            <h2>Teams</h2>
-            <ul>
-                {tournament.teams.map((team, index) => (
-                    <li key={index}>{team}</li>
-                ))}
-            </ul>
-
-            <h2>Match Schedule</h2>
-            <ul>
-                {tournament.matches.map((match) => (
-                    <li key={match.matchId}>
-                        {match.team1} vs {match.team2} - {match.date}
-                    </li>
-                ))}
-            </ul>
+            <div style={styles.buttonContainer}>
+                <button onClick={() => navigate(`/tournament/${id}/teams`)} style={styles.button}>
+                    Manage Teams
+                </button>
+                <button onClick={() => navigate(`/tournament/${id}/matches`)} style={styles.button}>
+                    Schedule Matches
+                </button>
+                <button onClick={() => navigate(`/tournament/${id}/results`)} style={styles.button}>
+                    View Results
+                </button>
+            </div>
         </div>
     );
 }
@@ -43,6 +28,19 @@ const styles = {
     container: {
         padding: "20px",
         textAlign: "center",
+    },
+    buttonContainer: {
+        marginTop: "20px",
+    },
+    button: {
+        margin: "10px",
+        padding: "10px 20px",
+        fontSize: "16px",
+        cursor: "pointer",
+        border: "none",
+        borderRadius: "5px",
+        backgroundColor: "#007bff",
+        color: "white",
     },
 };
 
