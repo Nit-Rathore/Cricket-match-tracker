@@ -21,10 +21,13 @@ builder.Services.AddSwaggerGen(c =>
 // ✅ Enable CORS (Allow Frontend Requests)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", policy =>
-        policy.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader());
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000") // Change to your frontend URL
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
 });
 
 var app = builder.Build();
@@ -41,7 +44,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // ✅ Enable CORS
-app.UseCors("AllowAllOrigins");
+app.UseCors("AllowReactApp"); // Enable CORS Policy
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

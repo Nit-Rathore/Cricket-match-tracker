@@ -4,6 +4,7 @@ Thumbs.db
 *.swp
 *.suo
 *.user
+.idea
 .vscode/
 
 #  Node.js (React Frontend)

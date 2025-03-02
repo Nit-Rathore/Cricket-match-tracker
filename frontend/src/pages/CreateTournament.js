@@ -1,22 +1,52 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createTournament } from "../services/api"; // Import API
 
 function CreateTournament() {
-    const [tournamentName, setTournamentName] = useState("");
-    const [startDate, setStartDate] = useState("");
+    const [tournament, setTournament] = useState({
+        name: "",
+        location: "",
+        startDate: "",
+        endDate: "",
+        teamCount: 2, // Default team count
+    });
+
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setTournament({ 
+            ...tournament, 
+            [name]: name === "teamCount" ? parseInt(value, 10) : value 
+        });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!tournamentName || !startDate) {
+        if (!tournament.name || !tournament.location || !tournament.startDate || !tournament.endDate) {
             alert("Please fill in all fields.");
             return;
         }
 
-        console.log("Tournament Created:", { tournamentName, startDate });
+        if (new Date(tournament.endDate) <= new Date(tournament.startDate)) {
+            alert("End date must be later than start date.");
+            return;
+        }
 
-        navigate("/");
+        if (tournament.teamCount < 2 || tournament.teamCount > 32) {
+            alert("Team count must be between 2 and 32.");
+            return;
+        }
+
+        try {
+            await createTournament(tournament); 
+            alert("Tournament created successfully!");
+            navigate("/");
+        } catch (error) {
+            console.error("Error creating tournament:", error);
+            alert("Failed to create tournament.");
+        }
     };
 
     return (
@@ -26,18 +56,53 @@ function CreateTournament() {
                 <label style={styles.label}>Tournament Name:</label>
                 <input
                     type="text"
-                    value={tournamentName}
-                    onChange={(e) => setTournamentName(e.target.value)}
+                    name="name"
+                    value={tournament.name}
+                    onChange={handleChange}
                     style={styles.input}
                     placeholder="Enter tournament name"
+                    required
+                />
+
+                <label style={styles.label}>Location:</label>
+                <input
+                    type="text"
+                    name="location"
+                    value={tournament.location}
+                    onChange={handleChange}
+                    style={styles.input}
+                    placeholder="Enter location"
                     required
                 />
 
                 <label style={styles.label}>Start Date:</label>
                 <input
                     type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    name="startDate"
+                    value={tournament.startDate}
+                    onChange={handleChange}
+                    style={styles.input}
+                    required
+                />
+
+                <label style={styles.label}>End Date:</label>
+                <input
+                    type="date"
+                    name="endDate"
+                    value={tournament.endDate}
+                    onChange={handleChange}
+                    style={styles.input}
+                    required
+                />
+
+                <label style={styles.label}>Team Count (2-32):</label>
+                <input
+                    type="number"
+                    name="teamCount"
+                    value={tournament.teamCount}
+                    min="2"
+                    max="32"
+                    onChange={handleChange}
                     style={styles.input}
                     required
                 />
