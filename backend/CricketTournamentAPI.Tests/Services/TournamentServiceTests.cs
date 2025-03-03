@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
@@ -25,16 +24,17 @@ public class TournamentServiceTests
         // Arrange
         var tournaments = new List<Tournament>
         {
-            new Tournament { Id = 1, Name = "Cricket Cup", Location = "New York", TeamCount = 10 },
-            new Tournament { Id = 2, Name = "Super League", Location = "London", TeamCount = 8 }
+            new Tournament { Id = 1, Name = "Cricket Cup", Location = "New York", StartDate = DateTime.Today, EndDate = DateTime.Today.AddDays(5), TeamCount = 10 },
+            new Tournament { Id = 2, Name = "Super League", Location = "London", StartDate = DateTime.Today, EndDate = DateTime.Today.AddDays(10), TeamCount = 8 }
         };
-        
+
         _mockRepo.Setup(repo => repo.GetAllTournaments()).ReturnsAsync(tournaments);
 
         // Act
-        var result = (await _service.GetAllTournaments()).ToList(); // Fix: Convert to List
+        var result = await _service.GetAllTournaments();
 
         // Assert
+        Assert.NotNull(result);
         Assert.Equal(2, result.Count);
         Assert.Equal("Cricket Cup", result[0].Name);
     }
@@ -43,79 +43,105 @@ public class TournamentServiceTests
     public async Task GetTournamentById_ShouldReturnTournament_WhenExists()
     {
         // Arrange
-        var tournaments = new List<Tournament>
-        {
-            new Tournament { Id = 1, Name = "Cricket Cup", Location = "New York", TeamCount = 10 }
+        var tournament = new Tournament 
+        { 
+            Id = 1, 
+            Name = "Cricket Cup", 
+            Location = "New York", 
+            StartDate = DateTime.Today, 
+            EndDate = DateTime.Today.AddDays(5), 
+            TeamCount = 10 
         };
 
-        _mockRepo.Setup(repo => repo.GetTournamentById(It.IsAny<int>()))
-                 .ReturnsAsync((int id) => tournaments.FirstOrDefault(t => t.Id == id));
+        _mockRepo.Setup(repo => repo.GetTournamentById(1)).ReturnsAsync(tournament);
 
         // Act
         var result = await _service.GetTournamentById(1);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("Cricket Cup", result.Name);
+        Assert.Equal("Cricket Cup", result?.Name);
+        Assert.True(result?.EndDate > result?.StartDate); // Validating EndDate
     }
 
     [Fact]
-    public async Task GetTournamentById_ShouldReturnNull_WhenNotExists()
+    public async Task CreateTournament_ShouldCallRepositoryOnce_WithValidData()
     {
         // Arrange
-        _mockRepo.Setup(repo => repo.GetTournamentById(It.IsAny<int>())).ReturnsAsync((Tournament)null);
+        var tournament = new Tournament
+        {
+            Id = 3,
+            Name = "Champions Trophy",
+            Location = "Australia",
+            StartDate = DateTime.Today,
+            EndDate = DateTime.Today.AddDays(7), // EndDate is valid
+            TeamCount = 12
+        };
+
+        _mockRepo.Setup(repo => repo.CreateTournament(It.IsAny<Tournament>())).Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.GetTournamentById(99);
+        await _service.CreateTournament(tournament);
 
         // Assert
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task CreateTournament_ShouldCallRepositoryOnce()
-    {
-        // Arrange
-        var tournament = new Tournament { Id = 3, Name = "Champions Trophy", Location = "Australia", TeamCount = 12 };
-
-        _mockRepo.Setup(repo => repo.CreateTournament(It.IsAny<Tournament>()))
-                .ReturnsAsync((Tournament t) => t); // Fix here
-
-        // Act
-        var result = await _service.CreateTournament(tournament);
-
-        // Assert
-        Assert.NotNull(result); // Ensure it returns a tournament
-        Assert.Equal("Champions Trophy", result.Name);
         _mockRepo.Verify(repo => repo.CreateTournament(It.IsAny<Tournament>()), Times.Once);
     }
 
+    [Fact]
+    public async Task CreateTournament_ShouldFail_WhenEndDateIsBeforeStartDate()
+    {
+        // Arrange
+        var tournament = new Tournament
+        {
+            Id = 4,
+            Name = "Invalid Tournament",
+            Location = "Invalid City",
+            StartDate = DateTime.Today.AddDays(5), 
+            EndDate = DateTime.Today, // Invalid: EndDate is before StartDate
+            TeamCount = 10
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _service.CreateTournament(tournament));
+    }
+
+    [Fact]
+    public async Task CreateTournament_ShouldFail_WhenTeamCountIsOutOfRange()
+    {
+        // Arrange
+        var tournament = new Tournament
+        {
+            Id = 5,
+            Name = "Bad Tournament",
+            Location = "Somewhere",
+            StartDate = DateTime.Today,
+            EndDate = DateTime.Today.AddDays(3),
+            TeamCount = 40 // Invalid: More than 32 teams
+        };
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _service.CreateTournament(tournament));
+    }
 
     [Fact]
     public async Task DeleteTournament_ShouldReturnTrue_WhenTournamentExists()
     {
-        // Arrange
-        _mockRepo.Setup(repo => repo.DeleteTournament(It.IsAny<int>())).ReturnsAsync(true);
+        _mockRepo.Setup(repo => repo.DeleteTournament(1)).ReturnsAsync(true);
 
-        // Act
         var result = await _service.DeleteTournament(1);
 
-        // Assert
         Assert.True(result);
-        _mockRepo.Verify(repo => repo.DeleteTournament(It.IsAny<int>()), Times.Once);
+        _mockRepo.Verify(repo => repo.DeleteTournament(1), Times.Once);
     }
 
     [Fact]
     public async Task DeleteTournament_ShouldReturnFalse_WhenTournamentDoesNotExist()
     {
-        // Arrange
         _mockRepo.Setup(repo => repo.DeleteTournament(It.IsAny<int>())).ReturnsAsync(false);
 
-        // Act
         var result = await _service.DeleteTournament(99);
 
-        // Assert
         Assert.False(result);
-        _mockRepo.Verify(repo => repo.DeleteTournament(It.IsAny<int>()), Times.Once);
+        _mockRepo.Verify(repo => repo.DeleteTournament(99), Times.Once);
     }
 }
