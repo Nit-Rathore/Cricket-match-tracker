@@ -19,8 +19,8 @@ function App() {
                     <Route path="/create-tournament" element={<CreateTournament />} />
                     <Route path="/tournaments" element={<Tournaments />} />
                     <Route path="/tournament/:id" element={<TournamentDetails />} />
-                    <Route path="/tournament/:id/teams" element={<TeamManagement />} />
-                    <Route path="/tournament/:id/matches" element={<MatchSchedule />} />
+                    <Route path="/teams" element={<TeamManagement />} />
+                    <Route path="/matches" element={<MatchSchedule />} />
                     <Route path="*" element={<NotFound />} /> {/* Catch-all route */}
                 </Routes>
             </main>
