@@ -11,7 +11,7 @@ public class Tournament
     public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Location is required.")]
-    [StringLength(50, ErrorMessage = "Location cannot exceed 50 characters.")]
+    [StringLength(50, MinimumLength = 3, ErrorMessage = "Location cannot exceed 50 characters.")]
     public string Location { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Start date is required.")]
